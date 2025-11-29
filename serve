@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")"
+PORT="${PORT:-3000}"
+HOST="${HOST:-0.0.0.0}"
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "pnpm is required to serve bhamjobs.com" >&2
+  exit 1
+fi
+
+pnpm install
+
+if [ ! -f .env ]; then
+  pnpm prepare:env
+fi
+
+# Export .env so db:init picks up database credentials
+if [ -f .env ]; then
+  set -a
+  source .env
+  set +a
+fi
+# Default local credentials (override via env if needed)
+export PGUSER="${PGUSER:-admin}"
+export PGPASSWORD="${PGPASSWORD:-secret}"
+
+ensure_database() {
+  local db_name="${PGDATABASE:-}"
+  if [ -z "$db_name" ] && [ -n "${DATABASE_URL:-}" ]; then
+    db_name="$(printf '%s' "$DATABASE_URL" | sed -n 's#.*/##p' | cut -d'?' -f1)"
+  fi
+  db_name="${db_name:-bhamjobs}"
+
+  local psql_base=()
+  if [ -n "${DATABASE_URL:-}" ]; then
+    # When a URI is used, psql needs no -d, the URL contains the DB name
+    psql_base=(psql "$DATABASE_URL")
+  else
+    psql_base=(
+      psql
+      -h "${PGHOST:-127.0.0.1}"
+      -p "${PGPORT:-5432}"
+      -U "${PGUSER:-admin}"
+      -d postgres
+    )
+  fi
+
+
+  local existing
+  existing="$("${psql_base[@]}" -tAc "SELECT 1 FROM pg_database WHERE datname='${db_name}'" 2>/dev/null || true)"
+  if [[ "$existing" != "1" ]]; then
+    echo "Creating database '${db_name}' (if permissions allow)..."
+    "${psql_base[@]}" -c "CREATE DATABASE \"${db_name}\"" >/dev/null
+  fi
+}
+
+if [ -z "${SKIP_DB_INIT:-}" ]; then
+  ensure_database
+  pnpm db:init
+fi
+
+export PORT
+export HOSTNAME="$HOST"
+
+echo "Starting bhamjobs.com on http://${HOST}:${PORT}"
+exec pnpm dev -- --hostname "$HOST" --port "$PORT"

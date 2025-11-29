@@ -1,0 +1,11 @@
+Next.js App Router interface with chat-style layout
+TailwindCSS v4 styling via global CSS import
+Radix UI component primitives available for interactivity
+Stripe Checkout integration with Link payment method enabled
+Public and private OpenAI chat API routes with offline queueing
+Command Palette with global hotkey for navigating commands
+Status Bar with pluggable cells for connectivity and hints
+Service worker providing app shell caching and connectivity pings
+LocalStorage persistence for chat history and offline drafts
+PostgreSQL database with Common Lisp migration runner
+Trivium theme with Grammar/Logic/Rhetoric variants (admin-only switching)
