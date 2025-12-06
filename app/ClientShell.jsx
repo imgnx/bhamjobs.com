@@ -9,15 +9,9 @@ export default function ClientShell({ children }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [theme, setTheme] = useState('trivium-rhetoric');
   const [isAdmin, setIsAdmin] = useState(false);
-  const [voicePlaybackEnabled, setVoicePlaybackEnabled] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      return localStorage.getItem('chat_voice_enabled') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [voicePlaybackSupported, setVoicePlaybackSupported] = useState(() => typeof window !== 'undefined' && 'speechSynthesis' in window);
+  const [voicePlaybackEnabled, setVoicePlaybackEnabled] = useState(false);
+  const [voicePlaybackSupported, setVoicePlaybackSupported] = useState(false);
+  const [online, setOnline] = useState(true);
   useCommandPaletteHotkey(() => setPaletteOpen((v) => !v));
   const openPalette = useCallback(() => setPaletteOpen(true), []);
 
@@ -64,7 +58,13 @@ export default function ClientShell({ children }) {
   }, []);
 
   useEffect(() => {
-    setVoicePlaybackSupported(typeof window !== 'undefined' && 'speechSynthesis' in window);
+    const supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+    setVoicePlaybackSupported(supported);
+    if (supported) {
+      try {
+        setVoicePlaybackEnabled(localStorage.getItem('chat_voice_enabled') === 'true');
+      } catch {}
+    }
     function onVoicePlaybackChanged(e) {
       const detail = e?.detail || {};
       if (typeof detail.supported === 'boolean') setVoicePlaybackSupported(detail.supported);
@@ -72,6 +72,17 @@ export default function ClientShell({ children }) {
     }
     window.addEventListener('voice:playback-changed', onVoicePlaybackChanged);
     return () => window.removeEventListener('voice:playback-changed', onVoicePlaybackChanged);
+  }, []);
+
+  useEffect(() => {
+    const updateOnline = () => setOnline(typeof navigator === 'undefined' ? true : navigator.onLine);
+    updateOnline();
+    window.addEventListener('online', updateOnline);
+    window.addEventListener('offline', updateOnline);
+    return () => {
+      window.removeEventListener('online', updateOnline);
+      window.removeEventListener('offline', updateOnline);
+    };
   }, []);
 
   const adminSignIn = useCallback(async () => {
@@ -151,6 +162,16 @@ export default function ClientShell({ children }) {
       <script dangerouslySetInnerHTML={{__html:`
         (function(){
           if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+          const isProd = ${JSON.stringify(process.env.NODE_ENV === 'production')};
+          const cachePrefix = 'app-shell';
+          if (!isProd) {
+            // In dev, avoid stale bundles by removing any existing SW + caches.
+            navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(()=>{});
+            if (window.caches?.keys) {
+              caches.keys().then((keys) => keys.filter((k) => k.startsWith(cachePrefix)).forEach((k) => caches.delete(k))).catch(()=>{});
+            }
+            return;
+          }
           window.addEventListener('load', function(){
             navigator.serviceWorker.register('/sw.js').catch(()=>{});
           });
@@ -240,7 +261,7 @@ export default function ClientShell({ children }) {
       <StatusBar cells={[
         ...(isAdmin ? [{ id: 'status-theme', content: `Theme: ${String((theme || '').replace('trivium-','') || 'rhetoric').replace('trivium','rhetoric')}` }] : []),
         { id: 'status-voice', content: voicePlaybackSupported ? `Voice: ${voicePlaybackEnabled ? 'On' : 'Off'}` : 'Voice: Unavailable' },
-        { id: 'status-connection', content: () => (navigator.onLine ? 'Online' : 'Offline') },
+        { id: 'status-connection', content: online ? 'Online' : 'Offline' },
         { id: 'status-build', content: 'Build: v1' },
         { id: 'status-help', content: 'Help: Type "help" in Command Palette' },
       ]} />

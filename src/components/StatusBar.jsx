@@ -10,7 +10,7 @@ function platformHint() {
 }
 
 export default function StatusBar({ cells = [] }) {
-  const [combo, setCombo] = useState(platformHint());
+  const [combo, setCombo] = useState('Cmd/Ctrl+Enter');
   useEffect(() => setCombo(platformHint()), []);
 
   const items = useMemo(() => [

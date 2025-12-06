@@ -5,22 +5,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 const STORAGE_KEY = "chat_voice_enabled";
 
 export function useSpeechSynthesis({ preferLocale = "en", rate = 1, pitch = 1, volume = 1 } = {}) {
-  const [supported, setSupported] = useState(() => typeof window !== "undefined" && "speechSynthesis" in window);
-  const [enabled, setEnabled] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      return localStorage.getItem(STORAGE_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
+  const [supported, setSupported] = useState(false);
+  const [enabled, setEnabled] = useState(false);
   const [voices, setVoices] = useState([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const lastUtteranceRef = useRef(null);
   const initializedRef = useRef(false);
 
   useEffect(() => {
-    setSupported(typeof window !== "undefined" && "speechSynthesis" in window);
+    const isSupported = typeof window !== "undefined" && "speechSynthesis" in window;
+    setSupported(isSupported);
+    if (isSupported) {
+      try {
+        setEnabled(localStorage.getItem(STORAGE_KEY) === "true");
+      } catch {
+        setEnabled(false);
+      }
+    }
   }, []);
 
   useEffect(() => {

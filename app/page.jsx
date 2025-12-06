@@ -5,6 +5,8 @@ import { usePublicChatApi } from '../src/hooks/usePublicChatApi.js';
 import { useTranscribe } from '../src/hooks/useTranscribe.js';
 import { useSpeechSynthesis } from '../src/hooks/useSpeechSynthesis.js';
 
+const DEFAULT_MESSAGES = [{ role: 'assistant', content: 'Hi! How can I help with your job search today?' }];
+
 export default function Page() {
   const { chat } = usePublicChatApi({});
   const { transcribeBlob } = useTranscribe({});
@@ -16,24 +18,33 @@ export default function Page() {
     supported: voiceSupported,
     isSpeaking,
   } = useSpeechSynthesis({ preferLocale: 'en' });
-  const [messages, setMessages] = useState(() => {
-    if (typeof window === 'undefined') return [{ role: 'assistant', content: 'Hi! How can I help with your job search today?' }];
-    try {
-      const raw = localStorage.getItem('chat_messages');
-      if (raw) return JSON.parse(raw);
-    } catch {}
-    return [{ role: 'assistant', content: 'Hi! How can I help with your job search today?' }];
-  });
+  const [messages, setMessages] = useState(DEFAULT_MESSAGES);
   const [input, setInput] = useState('');
   const [pending, setPending] = useState(false);
-  const [offline, setOffline] = useState(typeof navigator !== 'undefined' ? !navigator.onLine : false);
+  const [offline, setOffline] = useState(false);
   const [reconnected, setReconnected] = useState(false);
   const queueRef = useRef([]);
+  const messagesRef = useRef(DEFAULT_MESSAGES);
   const taRef = useRef(null);
   const mediaRef = useRef({ stream: null, recorder: null, chunks: [] });
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
-  const assistantCountRef = useRef(messages.filter((m) => m.role === 'assistant').length);
+  const assistantCountRef = useRef(DEFAULT_MESSAGES.filter((m) => m.role === 'assistant').length);
+
+  // Load messages from storage after mount to avoid hydration mismatches
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('chat_messages');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) {
+        setMessages(parsed);
+        messagesRef.current = parsed;
+        assistantCountRef.current = parsed.filter((m) => m.role === 'assistant').length;
+      }
+    } catch {}
+  }, []);
 
   // Load queued drafts from storage
   useEffect(() => {
@@ -45,6 +56,10 @@ export default function Page() {
   // Persist messages
   useEffect(() => {
     try { localStorage.setItem('chat_messages', JSON.stringify(messages)); } catch {}
+  }, [messages]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
   }, [messages]);
 
   // Online/offline listeners and SW heartbeat
@@ -61,7 +76,8 @@ export default function Page() {
       if (queued.length) {
         try {
           setPending(true);
-          const res = await chat([...messages, ...queued.map(q => ({ role: 'user', content: q }))]);
+          const baseMessages = [...messagesRef.current, ...queued.map(q => ({ role: 'user', content: q }))];
+          const res = await chat(baseMessages);
           setMessages((m) => [...m, { role: 'assistant', content: res?.content || '...' }]);
         } catch (err) {
           setMessages((m) => [...m, { role: 'assistant', content: 'Sorry, there was an error after reconnecting.' }]);
@@ -74,6 +90,7 @@ export default function Page() {
     function handleOffline() {
       setOffline(true);
     }
+    setOffline(typeof navigator !== 'undefined' ? !navigator.onLine : false);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     // Ping SW if present
@@ -82,7 +99,7 @@ export default function Page() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [chat, messages]);
+  }, [chat]);
 
   const canSend = useMemo(() => input.trim().length > 0 && !pending, [input, pending]);
   const lastAssistant = useMemo(() => {

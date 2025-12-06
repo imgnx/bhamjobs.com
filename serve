@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
 cd "$(dirname "$0")"
 PORT="${PORT:-3000}"
 HOST="${HOST:-0.0.0.0}"
+
 
 if ! command -v pnpm >/dev/null 2>&1; then
   echo "pnpm is required to serve bhamjobs.com" >&2
   exit 1
 fi
+
+brew services start postgresql
 
 pnpm install
 
@@ -65,4 +69,4 @@ export PORT
 export HOSTNAME="$HOST"
 
 echo "Starting bhamjobs.com on http://${HOST}:${PORT}"
-exec pnpm dev -- --hostname "$HOST" --port "$PORT"
+exec pnpm dev --hostname "$HOST" --port "$PORT"
