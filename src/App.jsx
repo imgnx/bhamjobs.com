@@ -1,5 +1,5 @@
 /*
-  bhamjobs — Auth‑Gated Chat Assistant (React + Tailwind, Webpack)
+  bhamjobs — Auth‑Gated Chat Assistant (React + Tailwind, Vite)
   -----------------------------------------------------------------
   One‑file React prototype that:
     • Gates the chat assistant behind login (like ChatGPT)
@@ -9,8 +9,8 @@
 
   Notes
   -----
-  - TailwindCSS assumed (index.css includes @tailwind base; components; utilities)
-  - Works in a standard Webpack + React setup
+  - TailwindCSS is loaded from src/styles.css.
+  - Works in a standard Vite + React setup.
   - Replace MockAPI with real endpoints/JWT when ready
   - Accessibility: buttons have aria-labels, input labels wired up
 */
@@ -676,9 +676,7 @@ function AssistantDrawer({ onClose, publicMode = false }) {
   const viewRef = useRef(null);
   const { chat: privateChat } = useChatApi({
     // Prefer dev token via env; fall back to client session token
-    token:
-      (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_API_TOKEN) ||
-      Session.get(),
+    token: import.meta.env.VITE_API_TOKEN || Session.get(),
   });
   const { chat: publicChat } = usePublicChatApi();
 

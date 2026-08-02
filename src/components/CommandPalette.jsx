@@ -99,7 +99,6 @@ export default function CommandPalette({ open, onClose, commands = [] }) {
 			    className="w-full bg-white border border-border rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
 			    aria-label="Command search"
 			/>
-			<div className="text-xs text-muted mt-1 px-1">Cmd/Ctrl+Enter to open • Esc to close • ↑/↓ to navigate</div>
 		    </div>
 		    <div ref={listRef} className="max-h-80 overflow-y-auto p-2 bg-white">
 			{filtered.length === 0 && (

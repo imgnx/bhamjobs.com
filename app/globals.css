@@ -2,26 +2,24 @@
 
 /* Trivium theme tokens (Tailwind v4 @theme) */
 @theme {
-  /* Core palette: Grammar (amber), Logic (emerald), Rhetoric (violet) */
-  --color-primary: oklch(0.56 0.21 284);  /* Rhetoric – violet */
-  --color-secondary: oklch(0.62 0.17 150); /* Logic – emerald */
-  --color-accent: oklch(0.74 0.15 78);    /* Grammar – amber */
+  --color-primary: oklch(0.47 0.14 154);
+  --color-secondary: oklch(0.31 0.07 248);
+  --color-accent: oklch(0.69 0.16 64);
 
-  /* Neutrals and surfaces */
-  --color-fg: oklch(0.17 0.03 262);
-  --color-muted: oklch(0.60 0.03 260);
-  --color-border: oklch(0.90 0.02 260);
-  --color-surface: oklch(0.99 0.01 95);
-  --color-bg: oklch(0.985 0.01 95);
+  --color-fg: oklch(0.19 0.03 255);
+  --color-muted: oklch(0.54 0.03 255);
+  --color-border: oklch(0.88 0.02 255);
+  --color-surface: oklch(1 0 0);
+  --color-bg: oklch(0.97 0.01 248);
 }
 
 /* Trivium variants: override tokens by theme attribute */
 /* Default alias: trivium == trivium-rhetoric */
 [data-theme="trivium"],
 [data-theme="trivium-rhetoric"] {
-  --color-primary: oklch(0.56 0.21 284);  /* Rhetoric – violet */
-  --color-secondary: oklch(0.62 0.17 150); /* Logic – emerald */
-  --color-accent: oklch(0.74 0.15 78);    /* Grammar – amber */
+  --color-primary: oklch(0.47 0.14 154);
+  --color-secondary: oklch(0.31 0.07 248);
+  --color-accent: oklch(0.69 0.16 64);
 }
 
 [data-theme="trivium-logic"] {
@@ -45,19 +43,14 @@
 
   html, body {
     @apply min-h-screen text-fg antialiased;
-    /* Soft Trivium backdrop gradient */
-    @apply bg-gradient-to-b from-emerald-50 via-violet-50 to-amber-50;
-    background-attachment: fixed;
+    background:
+      linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.98)),
+      radial-gradient(circle at 20% 0%, rgba(16, 185, 129, 0.12), transparent 32%);
     font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   }
 
   code, pre {
     font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  }
-
-  /* Provide a soft container feel by default */
-  main, section, article, aside, header, footer, nav, .card, .panel, .surface {
-    @apply rounded-xl bg-white/80 backdrop-blur-sm shadow-sm;
   }
 
   /* Links: subtle color and smooth hover */
@@ -70,7 +63,6 @@
   /* Buttons and inputs: rounded with slow hover/focus transitions */
   button, [type="button"], [type="submit"], [type="reset"],
   input, select, textarea {
-    @apply rounded-lg;
     transition: background-color 300ms var(--ease-smooth),
                 color 300ms var(--ease-smooth),
                 border-color 300ms var(--ease-smooth),

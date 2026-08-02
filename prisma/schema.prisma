@@ -19,6 +19,8 @@ enum BoardKind {
   FORUM
   BULLETIN
   FEATURE
+
+  @@map("board_kind")
 }
 
 enum ThreadStatus {
@@ -27,6 +29,8 @@ enum ThreadStatus {
   PLANNED
   COMPLETED
   ARCHIVED
+
+  @@map("thread_status")
 }
 
 model ForumBoard {
@@ -71,4 +75,3 @@ model DiscussionPost {
   @@index([threadId])
   @@map("discussion_post")
 }
-

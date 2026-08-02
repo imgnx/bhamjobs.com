@@ -110,6 +110,14 @@ export default function ClientShell({ children }) {
     } catch {}
   }, []);
 
+  const openPostJobForm = useCallback(() => {
+    if (window.location.pathname !== '/') {
+      window.location.href = '/#post-job';
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('jobs:open-post-form'));
+  }, []);
+
   const commands = useMemo(() => [
     { id: 'go-home', title: 'Go: Home', subtitle: 'Open the main chat', href: '/', keywords: ['navigate','root','chat','home'] },
     { id: 'go-payments', title: 'Go: Payments', subtitle: 'Manage or test payments', href: '/payments', keywords: ['navigate','checkout','billing'] },
@@ -122,6 +130,7 @@ export default function ClientShell({ children }) {
     { id: 'go-checkout', title: 'Action: Create Checkout Session', subtitle: 'POST /api/payments/create-checkout-session', action: async () => {
         try { await fetch('/api/payments/create-checkout-session', { method: 'POST' }); } catch {}
       }, keywords: ['payments','checkout','api'] },
+    { id: 'post-job', title: 'Action: Post a Job', subtitle: 'Open the employer posting form', action: openPostJobForm, keywords: ['job','post','employer','role','hiring'] },
     { id: 'show-status', title: 'Action: Show Connectivity', subtitle: 'Reveal online/offline banner', action: () => {
         try { window.dispatchEvent(new CustomEvent('statusbar:show')); } catch {}
       }, keywords: ['status','connectivity'] },
@@ -144,7 +153,7 @@ export default function ClientShell({ children }) {
     { id: 'voice-playback-toggle', title: voicePlaybackEnabled ? 'Voice Playback: Disable' : 'Voice Playback: Enable', subtitle: 'Speak assistant replies aloud', action: () => {
         try { window.dispatchEvent(new CustomEvent('voice:playback-toggle')); } catch {}
       }, keywords: ['voice','audio','speech','tts','accessibility'] },
-  ], [applyTheme, isAdmin, adminSignIn, adminSignOut, voicePlaybackEnabled]);
+  ], [applyTheme, isAdmin, adminSignIn, adminSignOut, openPostJobForm, voicePlaybackEnabled]);
 
   return (
     <>
@@ -178,80 +187,74 @@ export default function ClientShell({ children }) {
         })();
       `}} />
 
-      <aside className="hidden md:flex flex-col gap-4 p-4 border-r border-border bg-white/70 backdrop-blur-sm" aria-label="Chat sessions">
-        <div className="font-semibold text-fg">Chats</div>
+      <aside className="hidden md:flex flex-col gap-5 border-r border-slate-200 bg-slate-950 p-4 text-white" aria-label="Primary navigation">
+        <div>
+          <div className="text-xl font-semibold tracking-normal">bhamjobs</div>
+          <div className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-emerald-300">Birmingham, AL</div>
+        </div>
         <nav className="flex-1 overflow-auto space-y-2 pr-1">
           <button
-            className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted/10 transition"
+            className="w-full rounded-md bg-emerald-600 px-3 py-2 text-left text-sm font-semibold text-white hover:bg-emerald-500"
             onClick={() => { try { localStorage.removeItem('chat_messages'); } catch {}; window.location.href = '/'; }}
           >
-            New Chat
+            New search
           </button>
-          <div className="text-xs uppercase text-muted pt-2">Recent</div>
-          <ul className="space-y-1">
-            <li><a className="block px-3 py-2 rounded-lg hover:bg-muted/10" href="#">Welcome</a></li>
-            <li><a className="block px-3 py-2 rounded-lg hover:bg-muted/10" href="#">Job Search</a></li>
+          <div className="pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Marketplace</div>
+          <ul className="space-y-1 text-sm">
+            <li><a className="block rounded-md bg-white/10 px-3 py-2 text-white no-underline" href="/">Job desk</a></li>
+            <li>
+              <button
+                type="button"
+                onClick={openPostJobForm}
+                className="block w-full rounded-md px-3 py-2 text-left text-slate-300 hover:bg-white/10 hover:text-white"
+              >
+                Post a job
+              </button>
+            </li>
+            <li><a className="block rounded-md px-3 py-2 text-slate-300 no-underline hover:bg-white/10 hover:text-white" href="/boards">Talent boards</a></li>
+            <li><a className="block rounded-md px-3 py-2 text-slate-300 no-underline hover:bg-white/10 hover:text-white" href="/payments">Employer billing</a></li>
           </ul>
-          <div className="text-xs uppercase text-muted pt-4">Boards</div>
-          <ul className="space-y-1">
-            <li><a className="block px-3 py-2 rounded-lg hover:bg-muted/10" href="/boards">All boards</a></li>
-            <li><a className="block px-3 py-2 rounded-lg hover:bg-muted/10" href="/boards/discussions">Community discussions</a></li>
-            <li><a className="block px-3 py-2 rounded-lg hover:bg-muted/10" href="/boards/bulletin">Bulletin board</a></li>
-            <li><a className="block px-3 py-2 rounded-lg hover:bg-muted/10" href="/boards/feature-requests">Feature requests</a></li>
+          <div className="pt-4 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Community</div>
+          <ul className="space-y-1 text-sm">
+            <li><a className="block rounded-md px-3 py-2 text-slate-300 no-underline hover:bg-white/10 hover:text-white" href="/boards/discussions">Discussions</a></li>
+            <li><a className="block rounded-md px-3 py-2 text-slate-300 no-underline hover:bg-white/10 hover:text-white" href="/boards/bulletin">Bulletin</a></li>
+            <li><a className="block rounded-md px-3 py-2 text-slate-300 no-underline hover:bg-white/10 hover:text-white" href="/boards/feature-requests">Feature requests</a></li>
           </ul>
-          <div className="text-xs text-muted">bhamjobs</div>
         </nav>
-        <div className="text-xs text-muted">bhamjobs</div>
+        <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+          <div className="text-sm font-semibold">Employer hotline</div>
+          <div className="mt-1 text-xs leading-5 text-slate-400">Priority posting review and candidate routing for Birmingham hiring teams.</div>
+        </div>
       </aside>
 
       <div className="flex flex-col h-svh">
-        <header className="sticky top-0 z-10 border-b border-border bg-white/70 backdrop-blur-sm px-4 py-3" role="banner">
-          <div className="mx-auto max-w-3xl flex items-center justify-between gap-4">
-            <div className="font-medium flex items-baseline gap-3">
-              <span>Assistant</span>
-              <span className="text-xs text-muted">Just log in and you've got a job!</span>
+        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur" role="banner">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Metro Birmingham job supply</div>
+              <div className="text-lg font-semibold text-slate-950">Hiring desk</div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="hidden sm:block text-xs text-muted">Press Cmd/Ctrl+Enter</div>
               <button
                 type="button"
                 onClick={openPalette}
-                className="rounded-md border border-border bg-white px-3 py-1.5 text-sm hover:bg-slate-50"
+                className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 aria-label="Open Command Palette"
               >
-                Open Command Palette
+                Command menu
               </button>
-              <a href="#shortcuts" className="text-xs underline underline-offset-4 decoration-primary/40 hover:decoration-primary/60">Keyboard Shortcuts</a>
             </div>
           </div>
         </header>
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto" role="main" aria-label="Main content">
-          <div className="mx-auto max-w-3xl w-full px-4 py-6 space-y-4">
-            <section id="shortcuts" aria-labelledby="shortcuts-heading" className="rounded-xl bg-white/80 border border-border shadow-sm p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h2 id="shortcuts-heading" className="text-sm font-medium">Keyboard navigation</h2>
-                  <p className="text-xs text-muted">Tab/Shift+Tab to move • Enter/Space to activate • Esc to close panels</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={openPalette} className="rounded-md bg-primary text-white px-3 py-1.5 text-sm hover:brightness-95">Open Command Palette</button>
-                </div>
-              </div>
-              <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted">
-                <li><span className="cmd-kbd">Cmd/Ctrl+Enter</span> — Open Command Palette</li>
-                <li><span className="cmd-kbd">Tab</span>/<span className="cmd-kbd">Shift+Tab</span> — Move focus</li>
-                <li><span className="cmd-kbd">Enter</span> — Send message / run command</li>
-                <li><span className="cmd-kbd">Shift+Enter</span> — New line in message</li>
-                <li><span className="cmd-kbd">Esc</span> — Close palette</li>
-                <li><span className="cmd-kbd">↑</span>/<span className="cmd-kbd">↓</span> — Navigate commands</li>
-              </ul>
-            </section>
+          <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6">
             {children}
           </div>
         </main>
-        <footer className="sticky bottom-0 z-10 border-t border-border bg-white/80 backdrop-blur-sm px-4 py-3">
-          <div className="mx-auto max-w-3xl text-center text-xs text-muted">
-            AI responses may be inaccurate.
+        <footer className="sticky bottom-0 z-10 border-t border-slate-200 bg-white/90 px-4 py-3 backdrop-blur">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+            <span>Verified local employers · Birmingham metro coverage</span>
+            <span>Assistant guidance is reviewed against local market data.</span>
           </div>
         </footer>
       </div>
@@ -262,8 +265,7 @@ export default function ClientShell({ children }) {
         ...(isAdmin ? [{ id: 'status-theme', content: `Theme: ${String((theme || '').replace('trivium-','') || 'rhetoric').replace('trivium','rhetoric')}` }] : []),
         { id: 'status-voice', content: voicePlaybackSupported ? `Voice: ${voicePlaybackEnabled ? 'On' : 'Off'}` : 'Voice: Unavailable' },
         { id: 'status-connection', content: online ? 'Online' : 'Offline' },
-        { id: 'status-build', content: 'Build: v1' },
-        { id: 'status-help', content: 'Help: Type "help" in Command Palette' },
+        { id: 'status-build', content: 'Release: v1' },
       ]} />
     </>
   );
