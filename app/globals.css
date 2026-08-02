@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+/* Trivium theme tokens (Tailwind v4 @theme) */
+@theme {
+  /* Core palette: Grammar (amber), Logic (emerald), Rhetoric (violet) */
+  --color-primary: oklch(0.56 0.21 284);  /* Rhetoric – violet */
+  --color-secondary: oklch(0.62 0.17 150); /* Logic – emerald */
+  --color-accent: oklch(0.74 0.15 78);    /* Grammar – amber */
+
+  /* Neutrals and surfaces */
+  --color-fg: oklch(0.17 0.03 262);
+  --color-muted: oklch(0.60 0.03 260);
+  --color-border: oklch(0.90 0.02 260);
+  --color-surface: oklch(0.99 0.01 95);
+  --color-bg: oklch(0.985 0.01 95);
+}
+
+/* Trivium variants: override tokens by theme attribute */
+/* Default alias: trivium == trivium-rhetoric */
+[data-theme="trivium"],
+[data-theme="trivium-rhetoric"] {
+  --color-primary: oklch(0.56 0.21 284);  /* Rhetoric – violet */
+  --color-secondary: oklch(0.62 0.17 150); /* Logic – emerald */
+  --color-accent: oklch(0.74 0.15 78);    /* Grammar – amber */
+}
+
+[data-theme="trivium-logic"] {
+  --color-primary: oklch(0.62 0.17 150); /* Logic – emerald */
+  --color-secondary: oklch(0.56 0.21 284);  /* Rhetoric – violet */
+  --color-accent: oklch(0.74 0.15 78);    /* Grammar – amber */
+}
+
+[data-theme="trivium-grammar"] {
+  --color-primary: oklch(0.74 0.15 78);    /* Grammar – amber */
+  --color-secondary: oklch(0.62 0.17 150); /* Logic – emerald */
+  --color-accent: oklch(0.56 0.21 284);  /* Rhetoric – violet */
+}
+
+/* App-wide subtle rounding and smooth gradients */
+@layer base {
+  :root {
+    /* Timing for gentle transitions */
+    --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html, body {
+    @apply min-h-screen text-fg antialiased;
+    /* Soft Trivium backdrop gradient */
+    @apply bg-gradient-to-b from-emerald-50 via-violet-50 to-amber-50;
+    background-attachment: fixed;
+    font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  }
+
+  code, pre {
+    font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  /* Provide a soft container feel by default */
+  main, section, article, aside, header, footer, nav, .card, .panel, .surface {
+    @apply rounded-xl bg-white/80 backdrop-blur-sm shadow-sm;
+  }
+
+  /* Links: subtle color and smooth hover */
+  a {
+    @apply text-primary underline-offset-4 decoration-primary/40;
+    transition: color 250ms var(--ease-smooth), text-decoration-color 250ms var(--ease-smooth);
+  }
+  a:hover { @apply text-primary decoration-primary/60; }
+
+  /* Buttons and inputs: rounded with slow hover/focus transitions */
+  button, [type="button"], [type="submit"], [type="reset"],
+  input, select, textarea {
+    @apply rounded-lg;
+    transition: background-color 300ms var(--ease-smooth),
+                color 300ms var(--ease-smooth),
+                border-color 300ms var(--ease-smooth),
+                box-shadow 300ms var(--ease-smooth),
+                transform 300ms var(--ease-smooth);
+  }
+
+  /* Focus ring: soft and accessible */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary/70 ring-offset-2 ring-offset-white;
+    transition: box-shadow 250ms var(--ease-smooth);
+  }
+
+  /* Cards/components helper classes if used */
+  .card {
+    @apply p-4;
+  }
+  .panel {
+    @apply p-3;
+  }
+}
+
+@layer utilities {
+  /* A slow gradient utility for hero/headers */
+  .gradient-soft {
+    @apply bg-gradient-to-br from-emerald-50 via-violet-50 to-amber-50;
+    background-size: 200% 200%;
+    animation: gradient-pan 16s var(--ease-smooth) infinite alternate;
+  }
+
+  .rounded-soft {
+    @apply rounded-xl;
+  }
+
+  /* Small kbd style if needed */
+  .cmd-kbd {
+    @apply inline-flex items-center justify-center rounded-md border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] leading-none text-slate-600 shadow-sm;
+  }
+}
+
+@keyframes gradient-pan {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}

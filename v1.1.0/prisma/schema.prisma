@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AppLog {
+  id        BigInt   @id @default(autoincrement())
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("app_log")
+}
+
+enum BoardKind {
+  FORUM
+  BULLETIN
+  FEATURE
+}
+
+enum ThreadStatus {
+  OPEN
+  UNDER_REVIEW
+  PLANNED
+  COMPLETED
+  ARCHIVED
+}
+
+model ForumBoard {
+  id          String             @id @default(cuid())
+  slug        String             @unique
+  name        String
+  description String?
+  kind        BoardKind          @default(FORUM)
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+  threads     DiscussionThread[]
+
+  @@map("forum_board")
+}
+
+model DiscussionThread {
+  id        String       @id @default(cuid())
+  board     ForumBoard   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId   String       @map("board_id")
+  title     String
+  body      String
+  author    String?      @default("Anonymous")
+  status    ThreadStatus @default(OPEN)
+  voteCount Int          @default(0) @map("vote_count")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  posts     DiscussionPost[]
+
+  @@index([boardId])
+  @@map("discussion_thread")
+}
+
+model DiscussionPost {
+  id        String            @id @default(cuid())
+  thread    DiscussionThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  threadId  String            @map("thread_id")
+  body      String
+  author    String?           @default("Anonymous")
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  @@index([threadId])
+  @@map("discussion_post")
+}
+
